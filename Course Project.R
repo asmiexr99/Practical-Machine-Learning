@@ -11,7 +11,6 @@ training_data = read.csv("C:/Users/tesfamic/Desktop/coursera/practical machine l
 
 testing_data = read.csv("C:/Users/tesfamic/Desktop/coursera/practical machine learning/pml-testing.csv")
 # randomly splitting the training data in to two smaller training data
-set.seed(10)
 inTrain <- createDataPartition(y= training_data$classe, p=0.7, list=F)
 training1 <- training_data[inTrain, ]
 training2 <- training_data[-inTrain, ]
