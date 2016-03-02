@@ -1,1 +1,219 @@
-# Practical-Machine-Learning
+
+Coursera: Practical Machine Learning Prediction Assignment
+
+Asmerom Tesfamichael GitHub
+
+•Prepare the datasets
+•Train a prediction model ◦Evaluate the model on the training dataset
+◦Evaluate the model on the probing dataset
+◦Display the final model
+
+•Predict on the test data ◦Submission to Coursera
+
+## Run time: 2016-02-21 10:59:34
+## R version: R version 3.2.3 (2016-02-21)
+
+
+Background
+
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+
+Data 
+
+
+The training data for this project are available here:
+
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+
+The test data are available here:
+
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har. If you use the document you create for this class for any purpose please cite them as they have been very generous in allowing their data to be used for this kind of assignment.
+
+
+
+Prepare the datasets
+
+Read the training data into a data table.
+Loading Data
+Training data
+training_data <- read.csv("C:/Users/tesfamic/Desktop/coursera/practical machine learning/pml-training.csv") Testing data
+training_data <- read.csv("C:/Users/tesfamic/Desktop/coursera/practical machine learning/pml-testing.csv") 
+randomly splitting the training data in to two smaller training data 
+set.seed(10)
+inTrain <- createDataPartition(y= training_data$classe, p=0.7, list=F)
+training1 <- training_data[inTrain, ]
+training2 <- training_data[-inTrain, ]
+
+remove variables with nearly zero variance 
+
+nzv <- nearZeroVar(training1)
+training1 <- training1[, -nzv]
+training2 <- training2[, -nzv]
+
+remove variables with more than 95% missing values 
+
+Remove_NA  <- sapply(training1, function(x) mean(is.na(x))) > 0.95
+training1 <- training1[, Remove_NA==F]
+training2 <- training2[, Remove_NA==F]
+
+remove variables that don't make intuitive sense for prediction 
+
+training1 <- training1[, -(1:5)]
+training2 <- training2[, -(1:5)]
+
+Fitting model on training1 
+
+fitControl  <- trainControl(method="cv", number=3, verboseIter=F)
+Fit_model  <- train(classe ~ .,data=training1,method="rf",trControl=fitControl)
+Fit_model$finalModel
+
+
+Evaluating model on training data
+##  
+randomForest(x = x, y = y, mtry = param$mtry) 
+               Type of random forest: classification
+                     Number of trees: 500
+No. of variables tried at each split: 27
+
+        OOB estimate of  error rate: 0.23%
+Confusion matrix:
+     A    B    C    D    E  class.error
+A 3904    1    0    0    1 0.0005120328
+B    7 2646    4    1    0 0.0045146727
+C    0    6 2390    0    0 0.0025041736
+D    0    0    6 2245    1 0.0031083481
+E    0    0    0    4 2521 0.0015841584
+
+
+
+
+Evaluating model on probing dataset
+
+predicting classe labels of training2 using the fitted model on training 1 
+
+preds <- predict(Fit_model, newdata=training2)
+
+show confusion matrix to get estimate of out-of-sample error 
+
+confusionMatrix(training2$classe, preds)
+##  
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    A    B    C    D    E
+         A 1674    0    0    0    0
+         B    3 1135    0    1    0
+         C    0    2 1024    0    0
+         D    0    0    2  962    0
+         E    0    0    0    2 1080
+
+Overall Statistics
+                                          
+               Accuracy : 0.9983          
+                 95% CI : (0.9969, 0.9992)
+    No Information Rate : 0.285           
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.9979          
+ Mcnemar's Test P-Value : NA              
+
+Statistics by Class:
+
+                     Class: A Class: B Class: C Class: D Class: E
+Sensitivity            0.9982   0.9982   0.9981   0.9969   1.0000
+Specificity            1.0000   0.9992   0.9996   0.9996   0.9996
+Pos Pred Value         1.0000   0.9965   0.9981   0.9979   0.9982
+Neg Pred Value         0.9993   0.9996   0.9996   0.9994   1.0000
+Prevalence             0.2850   0.1932   0.1743   0.1640   0.1835
+Detection Rate         0.2845   0.1929   0.1740   0.1635   0.1835
+Detection Prevalence   0.2845   0.1935   0.1743   0.1638   0.1839
+Balanced Accuracy      0.9991   0.9987   0.9988   0.9982   0.9998
+
+
+
+
+Building model
+
+Before predicting on the test set, it is important to train the model on the full training set (training_data) .
+
+remove variables with nearly zero variance 
+
+nzv <- nearZeroVar(training_data)
+training_data <- training_data[, -nzv]
+training_data <- training_data[, -nzv]
+
+remove variables with more than 95% missing values 
+
+Remove_NA  <- sapply(training_data, function(x) mean(is.na(x))) > 0.95
+training_data <- training_data[, Remove_NA==F]
+testing_data <- testing_data[, Remove_NA==F]
+
+remove variables that don't make intuitive sense for prediction 
+
+training_data <- training_data[, -(1:5)]
+testing_data <- testing_data[, -(1:5)]
+
+re-fit model using full training set (training_data) 
+
+fitControl  <- trainControl(method="cv", number=3, verboseIter=F)
+fit_modelf  <- train(classe ~ .,data=training_data,method="rf",trControl=fitControl)
+fit_modelf$finalModel
+
+
+Displaying the final model
+##  
+Call:
+ randomForest(x = x, y = y, mtry = param$mtry) 
+               Type of random forest: classification
+                     Number of trees: 500
+No. of variables tried at each split: 27
+
+        OOB estimate of  error rate: 0.13%
+Confusion matrix:
+     A    B    C    D    E  class.error
+A 5578    1    0    0    1 0.0003584229
+B    5 3789    2    1    0 0.0021069265
+C    0    4 3418    0    0 0.0011689071
+D    0    0    9 3206    1 0.0031094527
+E    0    0    0    2 3605 0.0005544774
+
+
+
+
+Prediction on test data
+
+using the model on training_data to predict the label for the observations in testing_data 
+
+preds <- predict(fit_modelf, newdata=testing_data)
+
+convert predictions to character vector 
+
+preds <- as.character(preds)
+preds
+##  
+[1] "B" "A" "B" "A" "A" "E" "D" "B" "A" "A" "B" "C" "B" "A" "E" "E" "A" "B" "B" "B"
+
+
+
+
+Submission to Coursera
+
+Write submission files to predictionAssignment_files/answers.
+pml_write_files = function(x){
+  n = length(x)
+  path <- "predictionAssignment_files/answers"
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=file.path(path, filename),quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(hat)
+
