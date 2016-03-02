@@ -12,7 +12,7 @@ set.seed(2048)
 
 options(warn=-1)
 
-getting data
+- getting data
 
 training_data = read.csv("C:/Users/tesfamic/Desktop/coursera/practical machine learning/pml-training.csv")
 
